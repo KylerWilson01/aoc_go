@@ -50,7 +50,26 @@ func main() {
 }
 
 func solve_part_2(games []Game) (ans int) {
-	panic("unimplemented")
+	g := make(map[int]int)
+	for i, game := range games {
+		c := make(map[string]int)
+		g[i] = 1
+		for _, cubes := range game.cubes {
+			for _, cube := range cubes {
+				if cube.amount > c[cube.color] {
+					c[cube.color] = cube.amount
+				}
+			}
+		}
+		for _, amounts := range c {
+			g[i] = g[i] * amounts
+		}
+	}
+	for _, amounts := range g {
+		ans += amounts
+	}
+
+	return
 }
 
 func solve_part_1(games []Game) (ans int) {
@@ -81,6 +100,9 @@ func solve_part_1(games []Game) (ans int) {
 					panic("unknown color")
 				}
 			}
+		}
+		if !legal_game {
+			continue
 		}
 		id, err := strconv.Atoi(game.id)
 
