@@ -10,6 +10,14 @@ import (
 //go:embed input.txt
 var input string
 
+type Part struct {
+	number     int
+	startIndex int
+	endIndex   int
+}
+
+var symbols = []string{",", "(", ")", "[", "]", "{", "}", "<", ">", "!", "#", "$", "%", "^", "&", "*", "?", ":", ";", "=", "+", "-", "@"}
+
 func init() {
 	input = strings.TrimRight(input, "\n")
 	if len(input) == 0 {
@@ -32,14 +40,25 @@ func main() {
 	fmt.Printf("Part %d: %d\n", part, ans)
 }
 
-func solve_part_1(lines int) (ans int) {
+func solve_part_1(part []Part) (ans int) {
 	return
 }
 
-func solve_part_2(lines int) (ans int) {
+func solve_part_2(part []Part) (ans int) {
 	return
 }
 
-func parse_input(input string) (lines int) {
-	return 0
+func parse_input(input string) (parts []Part) {
+	input = strings.ReplaceAll(input, ".", " ")
+	for _, symbol := range symbols {
+		input = strings.ReplaceAll(input, symbol, ".")
+	}
+
+	println(input)
+
+	return []Part{{
+		number:     0,
+		startIndex: 0,
+		endIndex:   0,
+	}}
 }
