@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -14,9 +16,11 @@ type Part struct {
 	number     int
 	startIndex int
 	endIndex   int
+	truePart   bool
+	nextTo     string
+	symbolLine int
+	smybolIdx  int
 }
-
-var symbols = []string{",", "(", ")", "[", "]", "{", "}", "<", ">", "!", "#", "$", "%", "^", "&", "*", "?", ":", ";", "=", "+", "-", "@"}
 
 func init() {
 	input = strings.TrimRight(input, "\n")
@@ -40,25 +44,100 @@ func main() {
 	fmt.Printf("Part %d: %d\n", part, ans)
 }
 
-func solve_part_1(part []Part) (ans int) {
+func solve_part_1(parts []Part) (ans int) {
+	for _, part := range parts {
+		if part.truePart {
+			ans += part.number
+		}
+	}
 	return
 }
 
-func solve_part_2(part []Part) (ans int) {
+func solve_part_2(parts []Part) (ans int) {
 	return
 }
 
 func parse_input(input string) (parts []Part) {
-	input = strings.ReplaceAll(input, ".", " ")
-	for _, symbol := range symbols {
-		input = strings.ReplaceAll(input, symbol, ".")
+	input = strings.ReplaceAll(strings.TrimRight(input, "\n"), ".", " ")
+
+	lines := strings.Split(input, "\n")
+	length := len(lines)
+	partNumberIdxs := make([][][]int, length)
+	partIndecatorIdxs := make([][][]int, length)
+
+	for i, line := range lines {
+		regexPartNumber, err := regexp.Compile("([0-9]+)")
+		if err != nil {
+			panic(err)
+		}
+		partNumberMatches := regexPartNumber.FindAllStringSubmatchIndex(line, -1)
+
+		regexPartIndecators, err := regexp.Compile("([*+#$/=@%&-])")
+		if err != nil {
+			panic(err)
+		}
+		partIndecatorMatches := regexPartIndecators.FindAllStringSubmatchIndex(line, -1)
+
+		partNumberIdxs[i] = partNumberMatches
+		partIndecatorIdxs[i] = partIndecatorMatches
 	}
 
-	println(input)
+	for i := 0; i < length; i++ {
 
-	return []Part{{
-		number:     0,
-		startIndex: 0,
-		endIndex:   0,
-	}}
+		for j := 0; j < len(partNumberIdxs[i]); j++ {
+			if len(partNumberIdxs[i][j]) <= 0 {
+				continue
+			}
+			// check if there's an indecator near it
+			part := Part{
+				number:     0,
+				startIndex: 0,
+				endIndex:   0,
+				truePart:   false,
+			}
+
+			part.startIndex = partNumberIdxs[i][j][0]
+			part.endIndex = partNumberIdxs[i][j][1]
+			n, err := strconv.Atoi(lines[i][part.startIndex:part.endIndex])
+			if err != nil {
+				panic(err)
+			}
+
+			if i != 0 {
+				for _, inds := range partIndecatorIdxs[i-1] {
+					if inds[0] >= part.startIndex-1 && inds[1] <= part.endIndex+1 {
+						part.truePart = true
+						part.nextTo = lines[i-1][inds[0]:inds[1]]
+						part.symbolLine = i - 1
+						part.smybolIdx = inds[0]
+					}
+				}
+			}
+			for _, inds := range partIndecatorIdxs[i] {
+				if inds[0] >= part.startIndex-1 && inds[1] <= part.endIndex+1 {
+					part.truePart = true
+					part.nextTo = lines[i][inds[0]:inds[1]]
+					part.symbolLine = i
+					part.smybolIdx = inds[0]
+				}
+			}
+			if i < length-1 {
+				for _, inds := range partIndecatorIdxs[i+1] {
+					if inds[0] >= part.startIndex-1 && inds[1] <= part.endIndex+1 {
+						part.truePart = true
+						part.nextTo = lines[i+1][inds[0]:inds[1]]
+						part.symbolLine = i + 1
+						part.smybolIdx = inds[0]
+					}
+				}
+			}
+
+			part.number = n
+			parts = append(parts, part)
+		}
+	}
+
+	fmt.Println(parts)
+
+	return
 }
