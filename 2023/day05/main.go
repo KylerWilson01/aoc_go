@@ -41,7 +41,8 @@ func main() {
 	if part == 1 {
 		ans = solve_part_1(seeds, maps)
 	} else {
-		ans = solve_part_2(seeds, maps)
+		a := solve_part_2(seeds, maps)
+		ans = a.ans
 	}
 
 	fmt.Printf("Part %d: %d\n", part, ans)
@@ -68,16 +69,19 @@ func solve_part_1(s Seeds, m []Map) (ans int) {
 	return
 }
 
-func solve_part_2(s Seeds, m []Map) (ans int) {
-	c := make(chan int)
-	defer close(c)
-	mu := sync.Mutex{}
-	var wg sync.WaitGroup
+type Answer struct {
+	ans int
+	mu  sync.Mutex
+	wg  sync.WaitGroup
+}
 
+func solve_part_2(s Seeds, m []Map) (ans Answer) {
+	var lowests []int
 	for i := 0; i < len(s); i += 2 {
-		for j := s[i]; j < s[i]+s[i+1]-1; j++ {
-			go func(j int, waitingGroup *sync.WaitGroup, mumutex *sync.Mutex) {
-				waitingGroup.Add(1)
+		ans.wg.Add(1)
+		go func(i int) {
+			var lowest int
+			for j := s[i]; j < s[i]+s[i+1]-1; j++ {
 				destination := j
 
 				for _, map_ := range m {
@@ -89,16 +93,23 @@ func solve_part_2(s Seeds, m []Map) (ans int) {
 					}
 				}
 
-				mumutex.Lock()
-				if destination < ans || ans == 0 {
-					ans = destination
+				if destination < lowest || lowest == 0 {
+					lowest = destination
 				}
-				mumutex.Unlock()
-				waitingGroup.Done()
-			}(j, &wg, &mu)
+			}
+			ans.mu.Lock()
+			lowests = append(lowests, lowest)
+			ans.mu.Unlock()
+			ans.wg.Done()
+		}(i)
+	}
+	ans.wg.Wait()
+
+	for _, lowest := range lowests {
+		if lowest < ans.ans || ans.ans == 0 {
+			ans.ans = lowest
 		}
 	}
-	wg.Wait()
 
 	return
 }
