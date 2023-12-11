@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -37,18 +38,106 @@ func main() {
 	fmt.Printf("Part %d: %d\n", part, ans)
 }
 
-func solvePart1() (a int) {
+func solvePart1(r []Report) (a int) {
+	for _, report := range r {
+		tempNums := [][]int{}
+		tempNums = append(tempNums, report.numbers)
+
+		foundZeros := false
+		for foundZeros == false {
+			tt := []int{}
+			tna := tempNums[len(tempNums)-1]
+			fz := true
+
+			for i := 1; i < len(tna); i++ {
+				tpn := tna[i-1]
+				tcn := tna[i]
+				tdn := tcn - tpn
+				tt = append(tt, tdn)
+
+				if tdn != 0 {
+					fz = false
+				}
+			}
+
+			foundZeros = fz
+			tempNums = append(tempNums, tt)
+		}
+
+		for i := len(tempNums) - 1; i > 0; i-- {
+			ltn := tempNums[i][len(tempNums[i])-1]
+			lstn := tempNums[i-1][len(tempNums[i-1])-1]
+
+			tempNums[i-1] = append(tempNums[i-1], ltn+lstn)
+
+			if i == 1 {
+				a += (ltn + lstn)
+			}
+		}
+	}
+
 	return
 }
 
-func solvePart2() (a int) {
+func solvePart2(r []Report) (a int) {
+	for _, report := range r {
+		tempNums := [][]int{}
+		tempNums = append(tempNums, report.numbers)
+
+		foundZeros := false
+		for foundZeros == false {
+			tt := []int{}
+			tna := tempNums[len(tempNums)-1]
+			fz := true
+
+			for i := 1; i < len(tna); i++ {
+				tpn := tna[i-1]
+				tcn := tna[i]
+				tdn := tcn - tpn
+				tt = append(tt, tdn)
+
+				if tdn != 0 {
+					fz = false
+				}
+			}
+
+			foundZeros = fz
+			tempNums = append(tempNums, tt)
+		}
+
+		for i := len(tempNums) - 1; i > 0; i-- {
+			ltn := tempNums[i][0]
+			lstn := tempNums[i-1][0]
+
+			tempNums[i-1] = append([]int{lstn - ltn}, tempNums[i-1]...)
+
+			if i == 1 {
+				a += (lstn - ltn)
+			}
+		}
+	}
 	return
 }
 
-func parseInput(i string) {
+func parseInput(i string) (l []Report) {
 	i = strings.TrimRight(i, "\n")
 
 	for _, line := range strings.Split(i, "\n") {
+		nums := strings.Split(line, " ")
+		r := Report{
+			numbers:    []int{},
+			nextNumber: 0,
+		}
+
+		for _, num := range nums {
+			n, err := strconv.Atoi(num)
+			if err != nil {
+				panic(err)
+			}
+			r.numbers = append(r.numbers, n)
+		}
+
+		l = append(l, r)
 	}
 
 	return
