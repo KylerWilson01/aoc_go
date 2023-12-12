@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	_ "embed"
 	"flag"
 	"fmt"
@@ -10,17 +11,8 @@ import (
 //go:embed input.txt
 var input string
 
-type Directions string
-
-var DirectionMap = map[Directions]string{
-	"|": "NS",
-	"-": "EW",
-	"L": "NE",
-	"J": "NW",
-	"7": "SW",
-	"F": "SE",
-	".": "Ground",
-	"S": "Starting",
+type offset struct {
+	i, j int
 }
 
 func init() {
@@ -45,19 +37,49 @@ func main() {
 	fmt.Printf("Part %d: %d\n", part, ans)
 }
 
-func solvePart1(r []Report) (a int) {
+func solvePart1(r [][]byte) (a int) {
+	// Since the input is a rectangle, we can just subtract x1,y1 from x2,y2
 	return
 }
 
-func solvePart2(r []Report) (a int) {
+func solvePart2(r [][]byte) (a int) {
 	return
 }
 
-func parseInput(i string) (l []Report) {
+func parseInput(i string) (l [][]byte) {
 	i = strings.TrimRight(i, "\n")
 
-	for _, line := range strings.Split(i, "\n") {
+	emptyRows := make(map[offset]struct{})
+	emptyColumns := make(map[offset]struct{})
+
+	lines := bytes.Fields([]byte(i))
+
+	for i := range lines {
+		emptyRow := true
+		emptyColumn := true
+		for j := range lines {
+			if lines[i][j] == '#' {
+				emptyRow = false
+			}
+			if lines[j][i] == '#' {
+				emptyColumn = false
+			}
+
+			if !emptyColumn && !emptyRow {
+				break
+			}
+		}
+
+		if emptyRow {
+			emptyRows[offset{i, 0}] = struct{}{}
+		}
+
+		if emptyColumn {
+			emptyColumns[offset{0, i}] = struct{}{}
+		}
 	}
+
+	// expand the universe
 
 	return
 }
